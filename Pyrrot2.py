@@ -124,7 +124,31 @@ def upload_subtitles(rootdir):
                 print "---------------------------------"
             time.sleep(random.uniform(1,10))
 
+def parse_options():
+    global DIRECTORIES, base_url
+    def parse_list(option, opt, value, parser):
+        setattr(parser.values, option.dest, value.split(','))
+    from optparse import OptionParser
+    parser = OptionParser()
+    parser.add_option('-d', '--dirs', type='string', action='callback', callback=parse_list, help='Folders to scan for movies')
+    parser.add_option('-j', '--host', help='SubDB HOST in http://[HOST]:[PORT]/subdb?query')
+    parser.add_option('-p', '--port', help='SubDB PORT in http://[HOST]:[PORT]/subdb?query')
+    parser.add_option('-u', '--url', help='SubDB URL [URL]?query. Overrides --host and --port')
+    (options, args) = parser.parse_args()
+    if options.url:
+        base_url = options.url + '?{0}'
+    elif options.host:
+        netloc = options.host
+        if options.port:
+            netloc += ':' + options.port
+        base_url = list(urllib2.urlparse.urlsplit(base_url))
+        base_url[1] = netloc
+        base_url = urllib2.urlparse.urlunsplit(base_url)
+    if options.dirs:
+        DIRECTORIES = options.dirs
+
 if __name__ == '__main__':
+    parse_options()
     try:
         hashes_file = open('pyrrot-uploaded.prt', 'rb')
         uploaded = cPickle.load(hashes_file)
