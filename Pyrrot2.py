@@ -91,6 +91,7 @@ def download_subtitles(rootdir, languages):
             for language in languages:
                 result = download(language, get_hash(file), file)
                 if result == 200:
+                    uploaded[file] = result
                     print "download subtitle", file
                     break
                 elif result == 404:
