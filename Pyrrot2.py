@@ -130,7 +130,7 @@ def parse_options():
         setattr(parser.values, option.dest, value.split(','))
     from optparse import OptionParser
     parser = OptionParser()
-    parser.add_option('-d', '--dirs', type='string', action='callback', callback=parse_list, help='Folders to scan for movies')
+    parser.add_option('-d', '--dirs', type='string', action='callback', callback=parse_list, help='Folders to scan for movies: DIR1[,DIR2]')
     parser.add_option('-j', '--host', help='SubDB HOST in http://[HOST]:[PORT]/subdb?query')
     parser.add_option('-p', '--port', help='SubDB PORT in http://[HOST]:[PORT]/subdb?query')
     parser.add_option('-u', '--url', help='SubDB URL [URL]?query. Overrides --host and --port')
