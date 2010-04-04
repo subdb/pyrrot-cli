@@ -24,6 +24,9 @@ import urllib2_file
 base_url = 'http://url.to.subdb:port/subdb/?{0}'
 user_agent = 'Parrot/2.0 (Compatible; Pyrrot)'
 
+movie_exts = ['.avi', '.mkv', '.mp4', '.mov', '.mpg', '.wmv']
+subs_exts = ['.srt', '.sub']
+
 def get_hash(name):
     readsize = 64 * 1024
     with open(name, 'rb') as f:
@@ -63,29 +66,26 @@ def upload(hash, filename):
     except urllib2.HTTPError as e:
         return e.code
 
-def get_files_without_subs(rootdir):
+def get_movie_files(rootdir, with_subs=False):
     filelist = []
     for root, subfolders, files in os.walk(rootdir):
         for file in files:
-            if not re.search("\.(srt|sub|db)$", file):
-                filename = os.path.join(root, file)
-                if not os.path.isfile(os.path.splitext(filename)[0] + ".srt"):
-                    filelist.append(filename)
+            name, ext = os.path.splitext(file)
+            if ext in movie_exts:
+                if with_subs == has_subs(root, name):
+                    filelist.append(os.path.join(root, file))
     return filelist
 
-def get_files_with_subs(rootdir):
-    filelist = []
-    for root, subfolders, files in os.walk(rootdir):
-        for file in files:
-            if not re.search("\.(srt|sub|db)$", file):
-                filename = os.path.join(root, file)
-                if os.path.isfile(os.path.splitext(filename)[0] + ".srt"):
-                    filelist.append(filename)
-    return filelist
+def has_subs(root, name):
+    for ext in subs_exts:
+        filename = os.path.join(root, name + ext)
+        if os.path.isfile(filename):
+            return True
+    return False
 
 #search for subtitles to download
 def download_subtitles(rootdir, languages):
-    filelist = get_files_without_subs(rootdir)
+    filelist = get_movie_files(rootdir, with_subs=False)
     for file in filelist:
         if os.path.isfile(file):
             for language in languages:
@@ -100,7 +100,7 @@ def download_subtitles(rootdir, languages):
 
 #search for subtitles to upload
 def upload_subtitles(rootdir):
-    filelist = get_files_with_subs(rootdir)
+    filelist = get_movie_files(rootdir, with_subs=True)
     for file in filelist:
         if os.path.isfile(file):
             if file in uploaded:
