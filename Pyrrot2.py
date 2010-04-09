@@ -7,6 +7,8 @@ Created on 02/04/2010
 #edit the following options according to your needs
 DIRECTORIES = ["/path/to/your/video/files", "/path/to/your/video/files2"]
 LANGUAGES = ["pt","en"]
+MOVIE_EXTS = ['.avi', '.mkv', '.mp4', '.mov', '.mpg', '.wmv']
+SUBS_EXTS = ['.srt', '.sub']
 #end of configurations
 
 
@@ -24,9 +26,6 @@ import urllib2_file
 base_url = 'http://url.to.subdb:port/subdb/?{0}'
 user_agent = 'Parrot/2.0 (Compatible; Pyrrot)'
 
-movie_exts = ['.avi', '.mkv', '.mp4', '.mov', '.mpg', '.wmv']
-subs_exts = ['.srt', '.sub']
-
 def get_hash(name):
     readsize = 64 * 1024
     with open(name, 'rb') as f:
@@ -43,7 +42,8 @@ def download(language, hash, filename):
     req.add_header('User-Agent', user_agent)
     try:
         response = urllib2.urlopen(req)
-        filename = os.path.splitext(filename)[0] + ".srt"
+        ext = response.info()['Content-Disposition'].split(".")[1]
+        filename = os.path.splitext(filename)[0] + "." + ext
         with open(filename, "wb") as fout:
             fout.write(response.read())
         return 200
@@ -51,33 +51,35 @@ def download(language, hash, filename):
         return e.code
 
 def upload(hash, filename):
-    filename = os.path.splitext(filename)[0] + ".srt"
-    fd_file = open(filename)
-    fd = StringIO.StringIO()
-    fd.name = hash + ".srt"
-    fd.write(fd_file.read())
-    data = { 'hash': hash, 'file': fd }
-    params = {'action': 'upload', 'hash': hash}
-    url = base_url.format(urllib.urlencode(params))
-    req = urllib2.Request(url)
-    req.add_header('User-Agent', user_agent)
-    try:
-        urllib2.urlopen(req, data)
-    except urllib2.HTTPError as e:
-        return e.code
+    for ext in SUBS_EXTS:
+        filename = os.path.splitext(filename)[0] + ext
+        if os.path.isfile(filename):
+            fd_file = open(filename)
+            fd = StringIO.StringIO()
+            fd.name = hash + ".srt"
+            fd.write(fd_file.read())
+            data = { 'hash': hash, 'file': fd }
+            params = {'action': 'upload', 'hash': hash}
+            url = base_url.format(urllib.urlencode(params))
+            req = urllib2.Request(url)
+            req.add_header('User-Agent', user_agent)
+            try:
+                urllib2.urlopen(req, data)
+            except urllib2.HTTPError as e:
+                return e.code
 
 def get_movie_files(rootdir, with_subs=False):
     filelist = []
     for root, subfolders, files in os.walk(rootdir):
         for file in files:
             name, ext = os.path.splitext(file)
-            if ext in movie_exts:
+            if ext in MOVIE_EXTS:
                 if with_subs == has_subs(root, name):
                     filelist.append(os.path.join(root, file))
     return filelist
 
 def has_subs(root, name):
-    for ext in subs_exts:
+    for ext in SUBS_EXTS:
         filename = os.path.join(root, name + ext)
         if os.path.isfile(filename):
             return True
@@ -88,15 +90,14 @@ def download_subtitles(rootdir, languages):
     filelist = get_movie_files(rootdir, with_subs=False)
     for file in filelist:
         if os.path.isfile(file):
-            for language in languages:
-                result = download(language, get_hash(file), file)
-                if result == 200:
-                    uploaded[file] = result
-                    print "download subtitle", file
-                    break
-                elif result == 404:
-                    print language, "subtitle not found", file
-                time.sleep(random.uniform(1,5))
+            result = download(','.join(languages), get_hash(file), file)
+            if result == 200:
+                uploaded[file] = result
+                print "download subtitle", file
+                break
+            elif result == 404:
+                print "subtitle not found", file
+            time.sleep(random.uniform(1,5))
 
 #search for subtitles to upload
 def upload_subtitles(rootdir):
@@ -115,7 +116,7 @@ def upload_subtitles(rootdir):
                 print "subtitle already exists", file
             elif result == 415:
                 uploaded[file] = result
-                print "unsupported media type or the file is bigger than 200k"
+                print "unsupported media type or the file is bigger than 200k", file
             else:
                 print "---------------------------------"
                 print "error code", result
