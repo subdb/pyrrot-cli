@@ -3,8 +3,10 @@ Created on 02/04/2010
 
 @author: Jr. Hames
 '''
+from types import FunctionType, InstanceType
 
 #edit the following options according to your needs
+PYRROT_DIR = "/path/to/pyrrot"
 DIRECTORIES = ["/path/to/your/video/files", "/path/to/your/video/files2"]
 LANGUAGES = ["pt","en"]
 MOVIE_EXTS = ['.avi', '.mkv', '.mp4', '.mov', '.mpg', '.wmv']
@@ -12,6 +14,7 @@ SUBS_EXTS = ['.srt', '.sub']
 #end of configurations
 
 
+import logging
 import cPickle
 import StringIO
 import hashlib
@@ -25,6 +28,7 @@ import urllib2_file
 
 base_url = 'http://url.to.subdb:port/subdb/?{0}'
 user_agent = 'Parrot/2.0 (Compatible; Pyrrot)'
+logger = False
 
 def get_hash(name):
     readsize = 64 * 1024
@@ -93,10 +97,10 @@ def download_subtitles(rootdir, languages):
             result = download(','.join(languages), get_hash(file), file)
             if result == 200:
                 uploaded[file] = result
-                print "download subtitle", file
+                logger.info("download subtitle " + file)
                 break
             elif result == 404:
-                print "subtitle not found", file
+                logger.debug("subtitle not found " + file)
             time.sleep(random.uniform(1,5))
 
 #search for subtitles to upload
@@ -110,20 +114,20 @@ def upload_subtitles(rootdir):
             result = upload(hash, file)
             if result == 201:
                 uploaded[file] = result
-                print "uploaded subtitle", file
+                logger.info("uploaded subtitle " + file)
             elif result == 403:
                 uploaded[file] = result
-                print "subtitle already exists", file
+                logger.debug("subtitle already exists " + file)
             elif result == 415:
                 uploaded[file] = result
-                print "unsupported media type or the file is bigger than 200k", file
+                logger.warning("unsupported media type or the file is bigger than 200k " + file)
             else:
-                print "---------------------------------"
-                print "error code", result
-                print "hash", get_hash(file)
-                print "subtitle not uploaded", file
-                print "---------------------------------"
+                logger.error("cannot upload subtitle " + file + "\nresult: " + result)
             time.sleep(random.uniform(1,10))
+            
+def save():
+    with open('pyrrot-uploaded.prt', 'wb') as hashes_file:
+        cPickle.dump(uploaded, hashes_file)
 
 def parse_options():
     global DIRECTORIES, base_url
@@ -131,12 +135,15 @@ def parse_options():
         setattr(parser.values, option.dest, value.split(','))
     from optparse import OptionParser
     parser = OptionParser()
+    parser.add_option('-b', '--base', type='string', help='Set the basedir (application directory) of Pyrrot')
     parser.add_option('-d', '--dirs', type='string', action='callback', callback=parse_list, help='Folders to scan for movies: DIR1[,DIR2]')
     parser.add_option('-j', '--host', help='SubDB HOST in http://[HOST]:[PORT]/subdb?query')
     parser.add_option('-p', '--port', help='SubDB PORT in http://[HOST]:[PORT]/subdb?query')
     parser.add_option('-u', '--url', help='SubDB URL [URL]?query. Overrides --host and --port')
     (options, args) = parser.parse_args()
-    if options.url:
+    if options.base:
+        PYRROT_DIR = options.base
+    elif options.url:
         base_url = options.url + '?{0}'
     elif options.host:
         netloc = options.host
@@ -148,19 +155,25 @@ def parse_options():
     if options.dirs:
         DIRECTORIES = options.dirs
 
+if PYRROT_DIR != "":
+    os.chdir(PYRROT_DIR)
+logging.basicConfig(filename="pyrrot-log.txt",format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+logger = logging.getLogger("Pyrrot2")
+logger.setLevel(logging.DEBUG)
+try:
+    hashes_file = open('pyrrot-uploaded.prt', 'rb')
+    uploaded = cPickle.load(hashes_file)
+    hashes_file.close()
+except IOError:
+    uploaded = {}
+    logger.info("hash file does not exist yet")
+
 if __name__ == '__main__':
     parse_options()
-    try:
-        hashes_file = open('pyrrot-uploaded.prt', 'rb')
-        uploaded = cPickle.load(hashes_file)
-        hashes_file.close()
-    except IOError:
-        uploaded = {}
-        print "hash file does not exist yet"
+    print "running... see the log in pyrrot-log.txt"
     for folder in DIRECTORIES:
         download_subtitles(folder, LANGUAGES)
         upload_subtitles(folder)
-
-    with open('pyrrot-uploaded.prt', 'wb') as hashes_file:
-        cPickle.dump(uploaded, hashes_file)
+    save()
+    logger.info("-------------------------------------------")
     print "done"
