@@ -3,7 +3,6 @@ Created on 02/04/2010
 
 @author: Jr. Hames
 '''
-from types import FunctionType, InstanceType
 
 #edit the following options according to your needs
 PYRROT_DIR = "/path/to/pyrrot"
@@ -165,7 +164,7 @@ def parse_options():
     (options, args) = parser.parse_args()
     if options.base:
         PYRROT_DIR = options.base
-    elif options.url:
+    if options.url:
         base_url = options.url + '?{0}'
     elif options.host:
         netloc = options.host
