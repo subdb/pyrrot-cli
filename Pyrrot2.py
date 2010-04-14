@@ -29,6 +29,7 @@ import urllib2_file
 base_url = 'http://url.to.subdb:port/subdb/?{0}'
 user_agent = 'Parrot/2.0 (Compatible; Pyrrot)'
 logger = False
+retry = 0
 
 def get_hash(name):
     readsize = 64 * 1024
@@ -47,18 +48,29 @@ def download(language, hash, filename):
     try:
         response = urllib2.urlopen(req)
         ext = response.info()['Content-Disposition'].split(".")[1]
-        filename = os.path.splitext(filename)[0] + "." + ext
-        with open(filename, "wb") as fout:
+        file = os.path.splitext(filename)[0] + "." + ext
+        with open(file, "wb") as fout:
             fout.write(response.read())
+        retry = 0
         return 200
     except urllib2.HTTPError, e:
+        retry = 0
         return e.code
+    except urllib2.URLError as e:
+        if e.code == 10060:
+            if retry < 1800:
+                retry += 60
+            logger.debug("service did not respond, waiting " + retry + "s before retry")
+            time.sleep(retry)
+            download(language, hash, filename)
+        else:
+            return -1
 
 def upload(hash, filename):
     for ext in SUBS_EXTS:
-        filename = os.path.splitext(filename)[0] + ext
-        if os.path.isfile(filename):
-            fd_file = open(filename)
+        file = os.path.splitext(filename)[0] + ext
+        if os.path.isfile(file):
+            fd_file = open(file)
             fd = StringIO.StringIO()
             fd.name = hash + ".srt"
             fd.write(fd_file.read())
@@ -70,7 +82,17 @@ def upload(hash, filename):
             try:
                 urllib2.urlopen(req, data)
             except urllib2.HTTPError as e:
+                retry = 0
                 return e.code
+            except urllib2.URLError as e:
+                if e.code == 10060:
+                    if retry < 1800:
+                        retry += 60
+                    logger.debug("service did not respond, waiting " + retry + "s before retry")
+                    time.sleep(retry)
+                    upload(hash, filename)
+                else:
+                    return -1
 
 def get_movie_files(rootdir, with_subs=False):
     filelist = []

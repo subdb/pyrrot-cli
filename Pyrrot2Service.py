@@ -57,6 +57,7 @@ class Pyrrot2Service(win32serviceutil.ServiceFramework):
                     for folder in Pyrrot2.DIRECTORIES:
                         Pyrrot2.download_subtitles(folder, Pyrrot2.LANGUAGES)
                         Pyrrot2.upload_subtitles(folder)
+                        Pyrrot2.save()
                         self.can_run = False
                 elif self.retries == 180:
                     self.can_run = True
