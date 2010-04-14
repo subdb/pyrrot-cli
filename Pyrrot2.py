@@ -26,7 +26,7 @@ import urllib
 import urllib2
 import urllib2_file
 
-base_url = 'http://url.to.subdb:port/subdb/?{0}'
+base_url = 'http://thesubdb.com/?{0}'
 user_agent = 'Parrot/2.0 (Compatible; Pyrrot)'
 logger = False
 retry = 0
