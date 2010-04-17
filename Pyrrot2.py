@@ -57,14 +57,13 @@ def download(language, hash, filename):
         retry = 0
         return e.code
     except urllib2.URLError as e:
-        if e.code == 10060:
-            if retry < 1800:
-                retry += 60
-            logger.debug("service did not respond, waiting " + retry + "s before retry")
-            time.sleep(retry)
-            download(language, hash, filename)
+        if retry < 1800:
+            retry += 60
         else:
             return -1
+        logger.debug("service did not respond, waiting " + retry + "s before retry")
+        time.sleep(retry)
+        download(language, hash, filename)
 
 def upload(hash, filename):
     for ext in SUBS_EXTS:
@@ -85,14 +84,13 @@ def upload(hash, filename):
                 retry = 0
                 return e.code
             except urllib2.URLError as e:
-                if e.code == 10060:
-                    if retry < 1800:
-                        retry += 60
-                    logger.debug("service did not respond, waiting " + retry + "s before retry")
-                    time.sleep(retry)
-                    upload(hash, filename)
+                if retry < 1800:
+                    retry += 60
                 else:
                     return -1
+                logger.debug("service did not respond, waiting " + retry + "s before retry")
+                time.sleep(retry)
+                upload(hash, filename)
 
 def get_movie_files(rootdir, with_subs=False):
     filelist = []

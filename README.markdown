@@ -1,18 +1,17 @@
-README
----------------------------------------------------------
+![SubDB - a free subtitle database](http://thesubdb.com/subdb-logo.png)
+
+#README
 
 Pyrrot is a multiplatform client for SubDB (http://thesubdb.com) written in Python. It can run on Windows, Linux and MacOS.
 
 
-REQUIREMENTS
----------------------------------------------------------
+##REQUIREMENTS
 
 - Python 2.6.5 for all systems.
 - Mark Hammond's Win32all if you want to run Pyrrot as a service on Windows.
 
 
-INSTALLING
----------------------------------------------------------
+##INSTALLING
 
 You need to copy Pyrrot2.py and urllib2_file.py to a folder of your preference. Then, after you've done with the configurations (see below), all you need to do is:
 
@@ -31,30 +30,28 @@ c:\Python2.6.5\python.exe c:\path\to\Pyrrot2Service.py --startup auto install
 As you may have noticed, you need to copy Pyrrot2Service.py too.
 
 
-CONFIGURATION
----------------------------------------------------------
+##CONFIGURATION
 
 You need to edit the following lines on Pyrrot2.py before use it:
 
-PYRROT_DIR = "/path/to/pyrrot" #The path to where Pyrrot is. Can be empty if you're not running Pyrrot as a Windows Service.
+`PYRROT_DIR = "/path/to/pyrrot" #The path to where Pyrrot is. Can be empty if you're not running Pyrrot as a Windows Service.
 DIRECTORIES = ["/path/to/your/video/files", "/path/to/your/video/files2"] #Configure here the directories where your video files are.
 LANGUAGES = ["pt", "en"] #The languages to download subtitles, in order of preference.
 MOVIE_EXTS = ['.avi', '.mkv', '.mp4', '.mov', '.mpg', '.wmv'] #The video file extensions that you want Pyrrot to looking for.
 SUBS_EXTS = ['.srt', '.sub'] #The subtitle extensions that you want Pyrrot to looking for.
-UPLOAD_SUBTITLES = False #Please, only set this option to True if you're sure that all your subs are ok and properly synchronized
+UPLOAD_SUBTITLES = False #Please, only set this option to True if you're sure that all your subs are ok and properly synchronized`
 
 If you are on Windows, the paths will be like:
 
-PYRROT_DIR = "c:\\path\\to\\pyrrot"
+`PYRROT_DIR = "c:\\path\\to\\pyrrot"`
 
 
-FOUND A BUG
----------------------------------------------------------
+##FOUND A BUG
 
-http://github.com/jrhames/pyrrot-cli/issues
+<http://github.com/jrhames/pyrrot-cli/issues>
 
 
-LICENSE
----------------------------------------------------------
+##LICENSE
+
 This software is distribute under Creative Commons Attribution-Noncommercial-Share Alike 3.0. You can read the entire license on:
-http://creativecommons.org/licenses/by-nc-sa/3.0/
+<http://creativecommons.org/licenses/by-nc-sa/3.0/>
