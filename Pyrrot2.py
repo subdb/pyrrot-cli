@@ -62,7 +62,7 @@ def download(language, hash, filename):
             retry += 60
         else:
             return -1
-        logger.debug("service did not respond, waiting " + retry + "s before retry")
+        logger.debug("service did not respond, waiting " + str(retry) + "s before retry")
         time.sleep(retry)
         download(language, hash, filename)
 
@@ -90,7 +90,7 @@ def upload(hash, filename):
                     retry += 60
                 else:
                     return -1
-                logger.debug("service did not respond, waiting " + retry + "s before retry")
+                logger.debug("service did not respond, waiting " + str(retry) + "s before retry")
                 time.sleep(retry)
                 upload(hash, filename)
 
