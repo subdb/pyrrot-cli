@@ -26,7 +26,7 @@ import urllib
 import urllib2
 import urllib2_file
 
-base_url = 'http://thesubdb.com/?{0}'
+base_url = 'http://api.thesubdb.com/?{0}'
 user_agent = 'Parrot/2.0 (Compatible; Pyrrot)'
 logger = False
 retry = 0
@@ -41,6 +41,7 @@ def get_hash(name):
     return hashlib.md5(data).hexdigest()
 
 def download(language, hash, filename):
+    global retry
     params = {'action': 'download', 'language': language, 'hash': hash}
     url = base_url.format(urllib.urlencode(params))
     req = urllib2.Request(url)
@@ -66,6 +67,7 @@ def download(language, hash, filename):
         download(language, hash, filename)
 
 def upload(hash, filename):
+    global retry
     for ext in SUBS_EXTS:
         file = os.path.splitext(filename)[0] + ext
         if os.path.isfile(file):
