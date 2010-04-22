@@ -120,7 +120,6 @@ def download_subtitles(rootdir, languages):
             if result == 200:
                 uploaded[file] = result
                 logger.info("download subtitle " + file)
-                break
             elif result == 404:
                 logger.debug("subtitle not found " + file)
             time.sleep(random.uniform(1,5))
