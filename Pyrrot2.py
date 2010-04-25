@@ -122,6 +122,7 @@ def download_subtitles(rootdir, languages):
                 logger.info("download subtitle " + file)
             elif result == 404:
                 logger.debug("subtitle not found " + file)
+            save()
             time.sleep(random.uniform(1,5))
 
 #search for subtitles to upload
@@ -147,6 +148,7 @@ def upload_subtitles(rootdir):
                 logger.warning("unsupported media type or the file is bigger than 200k " + file)
             else:
                 logger.error("cannot upload subtitle " + file + "\nresult: " + result)
+            save()
             time.sleep(random.uniform(1,10))
             
 def save():

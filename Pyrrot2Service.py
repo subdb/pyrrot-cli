@@ -41,14 +41,13 @@ class Pyrrot2Service(win32serviceutil.ServiceFramework):
         self.timeout = 10000
         self.can_run = True
         self.retries = 0
-        
+
         while 1:
             # Wait for service stop signal, if I timeout, loop again
             rc = win32event.WaitForSingleObject(self.hWaitStop, self.timeout)
             # Check to see if self.hWaitStop happened
             if rc == win32event.WAIT_OBJECT_0:
                 # Stop signal encountered
-                Pyrrot2.save()
                 servicemanager.LogInfoMsg("Pyrrot2 - STOPPED")
                 break
             else:
@@ -57,7 +56,6 @@ class Pyrrot2Service(win32serviceutil.ServiceFramework):
                     for folder in Pyrrot2.DIRECTORIES:
                         Pyrrot2.download_subtitles(folder, Pyrrot2.LANGUAGES)
                         Pyrrot2.upload_subtitles(folder)
-                        Pyrrot2.save()
                         self.can_run = False
                 elif self.retries == 180:
                     self.can_run = True
