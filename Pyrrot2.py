@@ -27,7 +27,7 @@ import urllib2
 import urllib2_file
 
 base_url = 'http://api.thesubdb.com/?{0}'
-user_agent = 'Parrot/2.0 (Compatible; Pyrrot)'
+user_agent = 'SubDB/1.0 (Pyrrot/0.1; http://github.com/jrhames/pyrrot-cli)'
 logger = False
 retry = 0
 
