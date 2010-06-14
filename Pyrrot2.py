@@ -10,7 +10,6 @@ DIRECTORIES = ["/path/to/your/video/files", "/path/to/your/video/files2"]
 LANGUAGES = ["pt","en"]
 MOVIE_EXTS = ['.avi', '.mkv', '.mp4', '.mov', '.mpg', '.wmv']
 SUBS_EXTS = ['.srt', '.sub']
-UPLOAD_SUBTITLES = False #Please, only set this option to True if you're sure that all your subs are ok and properly synchronized
 #end of configurations
 
 
@@ -127,9 +126,6 @@ def download_subtitles(rootdir, languages):
 
 #search for subtitles to upload
 def upload_subtitles(rootdir):
-    if not UPLOAD_SUBTITLES:
-        logger.debug("skipping upload for " + rootdir)
-        return
     filelist = get_movie_files(rootdir, with_subs=True)
     for file in filelist:
         if os.path.isfile(file):

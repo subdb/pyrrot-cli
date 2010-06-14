@@ -44,8 +44,6 @@ You need to edit the following lines on Pyrrot2.py before use it:
 
 `SUBS_EXTS = ['.srt', '.sub'] #The subtitle extensions that you want Pyrrot to looking for.`
 
-`UPLOAD_SUBTITLES = False #Please, only set this option to True if you're sure that all your subs are ok and properly synchronized`
-
 If you are on Windows, the paths will be like:
 
 `PYRROT_DIR = "c:\\path\\to\\pyrrot"`
