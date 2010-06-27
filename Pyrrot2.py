@@ -9,6 +9,7 @@ PYRROT_DIR = ""
 DIRECTORIES = ["/path/to/your/video/files", "/path/to/your/video/files2"]
 LANGUAGES = ["pt","en"]
 HASHES_FILE = 'pyrrot-uploaded.prt'
+LOG_FILE = 'pyrrot-log.txt'
 MOVIE_EXTS = ['.avi', '.mkv', '.mp4', '.m4v', '.mov', '.mpg', '.wmv']
 SUBS_EXTS = ['.srt', '.sub']
 #end of configurations
@@ -63,7 +64,7 @@ def download(language, hash, filename):
             retry += 60
         else:
             return -1
-        logger.debug("service did not respond, waiting " + str(retry) + "s before retry")
+        logger.debug("service did not respond, waiting %ds before retry" % retry)
         time.sleep(retry)
         download(language, hash, filename)
 
@@ -91,7 +92,7 @@ def upload(hash, filename):
                     retry += 60
                 else:
                     return -1
-                logger.debug("service did not respond, waiting " + str(retry) + "s before retry")
+                logger.debug("service did not respond, waiting %ds before retry" % retry)
                 time.sleep(retry)
                 upload(hash, filename)
 
@@ -145,7 +146,7 @@ def upload_subtitles(rootdir):
                 uploaded[file] = result
                 logger.warning("unsupported media type or the file is bigger than 200k " + file)
             else:
-                logger.error("cannot upload subtitle " + file + "\nresult: " + result)
+                logger.error("cannot upload subtitle %s - result: %s" % (file, result))
             save()
             time.sleep(random.uniform(1,10))
 
@@ -154,7 +155,7 @@ def save():
         cPickle.dump(uploaded, hashes_file)
 
 def parse_options():
-    global DIRECTORIES, HASHES_FILE, base_url
+    global DIRECTORIES, HASHES_FILE, LOG_FILE, base_url
     def parse_list(option, opt, value, parser):
         setattr(parser.values, option.dest, value.split(','))
     from optparse import OptionParser
@@ -162,6 +163,7 @@ def parse_options():
     parser.add_option('-a', '--hashes', help='File where to store database of uploaded hashes')
     parser.add_option('-b', '--base', type='string', help='Set the basedir (application directory) of Pyrrot')
     parser.add_option('-d', '--dirs', type='string', action='callback', callback=parse_list, help='Folders to scan for movies: DIR1[,DIR2]')
+    parser.add_option('-l', '--log', help='File where to write logging output')
     parser.add_option('-j', '--host', help='SubDB HOST in http://[HOST]:[PORT]/subdb?query')
     parser.add_option('-p', '--port', help='SubDB PORT in http://[HOST]:[PORT]/subdb?query')
     parser.add_option('-u', '--url', help='SubDB URL [URL]?query. Overrides --host and --port')
@@ -181,6 +183,8 @@ def parse_options():
         DIRECTORIES = options.dirs
     if options.hashes:
         HASHES_FILE = options.hashes
+    if options.log:
+        LOG_FILE = options.log.strip()
 
 def load_hashes_db():
     global uploaded
@@ -195,7 +199,11 @@ def load_hashes_db():
 
 def init_logger():
     global logger
-    logging.basicConfig(filename="pyrrot-log.txt",format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+    format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    if not LOG_FILE:
+        logging.basicConfig(format=format)
+    else:
+        logging.basicConfig(filename=LOG_FILE, format=format)
     logger = logging.getLogger("Pyrrot2")
     logger.setLevel(logging.INFO)
 
@@ -204,8 +212,9 @@ if __name__ == '__main__':
     parse_options()
     if PYRROT_DIR != "":
         os.chdir(PYRROT_DIR)
-    print "running... see the log in pyrrot-log.txt"
     init_logger()
+    if LOG_FILE:
+        print "running... see the log in", LOG_FILE
     load_hashes_db()
     for folder in DIRECTORIES:
         download_subtitles(folder, LANGUAGES)
