@@ -5,10 +5,10 @@ Created on 02/04/2010
 '''
 
 #edit the following options according to your needs
-PYRROT_DIR = "/path/to/pyrrot"
+PYRROT_DIR = ""
 DIRECTORIES = ["/path/to/your/video/files", "/path/to/your/video/files2"]
 LANGUAGES = ["pt","en"]
-MOVIE_EXTS = ['.avi', '.mkv', '.mp4', '.mov', '.mpg', '.wmv']
+MOVIE_EXTS = ['.avi', '.mkv', '.mp4', '.m4v', '.mov', '.mpg', '.wmv']
 SUBS_EXTS = ['.srt', '.sub']
 #end of configurations
 
@@ -146,7 +146,7 @@ def upload_subtitles(rootdir):
                 logger.error("cannot upload subtitle " + file + "\nresult: " + result)
             save()
             time.sleep(random.uniform(1,10))
-            
+
 def save():
     with open('pyrrot-uploaded.prt', 'wb') as hashes_file:
         cPickle.dump(uploaded, hashes_file)
