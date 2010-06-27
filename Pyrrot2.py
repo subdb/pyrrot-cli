@@ -8,6 +8,7 @@ Created on 02/04/2010
 PYRROT_DIR = ""
 DIRECTORIES = ["/path/to/your/video/files", "/path/to/your/video/files2"]
 LANGUAGES = ["pt","en"]
+HASHES_FILE = 'pyrrot-uploaded.prt'
 MOVIE_EXTS = ['.avi', '.mkv', '.mp4', '.m4v', '.mov', '.mpg', '.wmv']
 SUBS_EXTS = ['.srt', '.sub']
 #end of configurations
@@ -27,7 +28,8 @@ import urllib2_file
 
 base_url = 'http://api.thesubdb.com/?{0}'
 user_agent = 'SubDB/1.0 (Pyrrot/0.1; http://github.com/jrhames/pyrrot-cli)'
-logger = False
+logger = None
+uploaded = {}
 retry = 0
 
 def get_hash(name):
@@ -148,15 +150,16 @@ def upload_subtitles(rootdir):
             time.sleep(random.uniform(1,10))
 
 def save():
-    with open('pyrrot-uploaded.prt', 'wb') as hashes_file:
+    with open(HASHES_FILE, 'wb') as hashes_file:
         cPickle.dump(uploaded, hashes_file)
 
 def parse_options():
-    global DIRECTORIES, base_url
+    global DIRECTORIES, HASHES_FILE, base_url
     def parse_list(option, opt, value, parser):
         setattr(parser.values, option.dest, value.split(','))
     from optparse import OptionParser
     parser = OptionParser()
+    parser.add_option('-a', '--hashes', help='File where to store database of uploaded hashes')
     parser.add_option('-b', '--base', type='string', help='Set the basedir (application directory) of Pyrrot')
     parser.add_option('-d', '--dirs', type='string', action='callback', callback=parse_list, help='Folders to scan for movies: DIR1[,DIR2]')
     parser.add_option('-j', '--host', help='SubDB HOST in http://[HOST]:[PORT]/subdb?query')
@@ -176,23 +179,34 @@ def parse_options():
         base_url = urllib2.urlparse.urlunsplit(base_url)
     if options.dirs:
         DIRECTORIES = options.dirs
+    if options.hashes:
+        HASHES_FILE = options.hashes
 
-if PYRROT_DIR != "":
-    os.chdir(PYRROT_DIR)
-logging.basicConfig(filename="pyrrot-log.txt",format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-logger = logging.getLogger("Pyrrot2")
-logger.setLevel(logging.INFO)
-try:
-    hashes_file = open('pyrrot-uploaded.prt', 'rb')
-    uploaded = cPickle.load(hashes_file)
-    hashes_file.close()
-except IOError:
-    uploaded = {}
-    logger.info("hash file does not exist yet")
+def load_hashes_db():
+    global uploaded
+    if not os.path.isfile(HASHES_FILE):
+        logger.info("hash file does not exist yet")
+        return
+    try:
+        with open(HASHES_FILE, 'rb') as hashes_file:
+            uploaded = cPickle.load(hashes_file)
+    except EOFError:
+        logger.info("hash file corrupted, will create new one")
+
+def init_logger():
+    global logger
+    logging.basicConfig(filename="pyrrot-log.txt",format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+    logger = logging.getLogger("Pyrrot2")
+    logger.setLevel(logging.INFO)
+
 
 if __name__ == '__main__':
     parse_options()
+    if PYRROT_DIR != "":
+        os.chdir(PYRROT_DIR)
     print "running... see the log in pyrrot-log.txt"
+    init_logger()
+    load_hashes_db()
     for folder in DIRECTORIES:
         download_subtitles(folder, LANGUAGES)
         upload_subtitles(folder)
