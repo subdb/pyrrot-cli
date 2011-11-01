@@ -71,6 +71,7 @@ eg:
 import httplib
 import mimetools
 import mimetypes
+import io
 import os
 import os.path
 import socket
@@ -104,8 +105,12 @@ def send_data(v_vars, v_files, boundary, sock=None):
  
         if hasattr(fd, 'fileno'):
             # a File
-            name = fd.name.split(os.path.sep)[-1]
-            file_size = os.fstat(fd.fileno())[stat.ST_SIZE]
+            try:
+                name = fd.name.split(os.path.sep)[-1]
+                file_size = os.fstat(fd.fileno())[stat.ST_SIZE]
+            except io.UnsupportedOperation:
+                name = fd.name
+                file_size = len(fd.getvalue())
             fd.seek(0)
         elif hasattr(fd, 'len'):
             # StringIO

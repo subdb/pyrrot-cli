@@ -17,7 +17,7 @@ SUBS_EXTS = ['.srt', '.sub']
 
 import logging
 import cPickle
-import StringIO
+import io
 import hashlib
 import os
 import random
@@ -73,8 +73,8 @@ def upload(hash, filename):
     for ext in SUBS_EXTS:
         file = os.path.splitext(filename)[0] + ext
         if os.path.isfile(file):
-            fd_file = open(file)
-            fd = StringIO.StringIO()
+            fd_file = open(file, 'rb')
+            fd = io.BytesIO()
             fd.name = hash + ".srt"
             fd.write(fd_file.read())
             data = { 'hash': hash, 'file': fd }
